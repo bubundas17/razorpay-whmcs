@@ -37,7 +37,8 @@ $api = new Api($keyId, $keySecret);
 try {
     $api->utility->verifyWebhookSignature($webhookBody, $_SERVER['HTTP_X_RAZORPAY_SIGNATURE'], $webhookSecret);
 } catch (\Razorpay\Api\Errors\SignatureVerificationError $e){
-
+    logTransaction("[WEBHOOK] SIGNATURE FAILOUR" . $gatewayParams["name"], file_get_contents("php://input"), "Failed");
+    die(0);
 }
 
 if(!empty($data['event']) && $data['event'] == "payment.authorized"){
@@ -60,19 +61,19 @@ if(!empty($data['event']) && $data['event'] == "payment.authorized"){
         $amount = $invoice->total;
     }
 
-    $amount = $amount*100;
+    $converted_amount = $amount*100;
 
     if($rzpay['status'] == 'authorized'){
-        $payment = $api->payment->fetch($rzpay['id'])->capture(['amount' => $amount]);
+        $payment = $api->payment->fetch($rzpay['id'])->capture(['amount' => $converted_amount]);
     }
 
     $payment = $api->payment->fetch($rzpay['id']);
 
     if($payment->status == "captured"){
 
-        addInvoicePayment($invoice->id, $payment->id, $amount, $payment->fee, $gatewayParams["name"]);
+        addInvoicePayment($invoice->id, $payment->id, $amount, $payment->fee / 100, $gatewayParams["name"]);
 
-        logTransaction($gatewayParams["name"], file_get_contents("php://input"), "Successful"); # Save to Gateway Log: name, data array, status
+        logTransaction("[WEBHOOK] " . $gatewayParams["name"], file_get_contents("php://input"), "Successful"); # Save to Gateway Log: name, data array, status
     }
 }
 
