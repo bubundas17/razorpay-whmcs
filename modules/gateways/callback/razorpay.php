@@ -68,7 +68,7 @@ try {
 }
 
 if ($success === true) {
-    addInvoicePayment($invoice_id, $razorpay_payment_id, $amount, $payment->fee, $gatewayParams["name"]);
+    addInvoicePayment($invoice_id, $razorpay_payment_id, $amount, $payment->fee / 100, $gatewayParams["name"]);
     logTransaction($gatewayParams["name"], $_POST, "Successful");
 } else {
     logTransaction($gatewayParams["name"], $_POST, "Unsuccessful-".$error . ". Please check razorpay dashboard for Payment id: ".$_POST['razorpay_payment_id']);
